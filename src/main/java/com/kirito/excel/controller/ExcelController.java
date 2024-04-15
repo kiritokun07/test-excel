@@ -1,5 +1,6 @@
 package com.kirito.excel.controller;
 
+import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.kirito.excel.base.R;
@@ -20,7 +21,10 @@ import org.springframework.web.bind.annotation.RestController;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
+import java.util.function.BiConsumer;
+import java.util.function.BiFunction;
 
 @RestController
 @Slf4j
@@ -81,7 +85,7 @@ public class ExcelController {
         List<BigDataDto> bigDataDtoList = bigDataConverter.bigData2DtoList(bigDataList);
         log.info("转换结束");
         Instant start = Instant.now();
-        String destPath = "C:\\Users\\kirito\\Desktop\\bigData-" + System.currentTimeMillis() / 1000 + ".xlsx";
+        String destPath = geneDestPath();
 //        EasyExcel.write(destPath, BigDataDto.class)
 //                .sheet()
 //                .registerConverter(new MyLocalDateTimeConverter())
@@ -96,5 +100,37 @@ public class ExcelController {
         return R.success();
     }
 
+    private static String geneDestPath() {
+        return "C:\\Users\\kirito\\Desktop\\bigData-" + System.currentTimeMillis() / 1000 + ".xlsx";
+    }
+
+    @Operation(summary = "export2")
+    @GetMapping("/export2")
+    public R<?> export2() {
+        long total = iBigDataService.count();
+        String destPath = geneDestPath();
+        log.info("导出开始");
+        Instant start = Instant.now();
+        Runnable startFunc = () -> System.out.println("开始导出");
+        BiFunction<Integer, Integer, Collection<BigDataDto>> exportFunc = new BiFunction<>() {
+            @Override
+            public Collection<BigDataDto> apply(Integer cursor, Integer size) {
+                log.info("page limit {},{}", cursor, size);
+                return bigDataConverter.bigData2DtoList(iBigDataService.lambdaQuery()
+                        .last(StrUtil.format("limit {},{}", cursor, size))
+                        .list()
+                );
+            }
+        };
+        BiConsumer<Integer, Integer> noticeFunc = (cursor, myTotal) -> System.out.println("导出百分比= " + cursor * 1.0 / myTotal);
+        Runnable endFunc = () -> System.out.println("结束导出");
+        ExportUtil.export2(destPath, BigDataDto.class, (int) total, 3000, startFunc,
+                exportFunc, noticeFunc, endFunc);
+        log.info("导出结束");
+        Instant end = Instant.now();
+        Duration executionDuration = Duration.between(start, end);
+        System.out.println("执行用时: " + executionDuration.toMillis() + " 毫秒");
+        return R.success();
+    }
 
 }
