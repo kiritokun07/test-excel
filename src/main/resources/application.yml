@@ -43,8 +43,8 @@ logging:
     path: ./
     name: logs/${spring.application.name}.log
   pattern:
-    console: "%d{yyyy-MM-dd HH:mm:ss} %contextName [%thread] %-5level %logger- %msg%n"
-    file: "%d{yyyy-MM-dd HH:mm:ss} %contextName [%thread] %-5level %logger- %msg%n"
+    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} %contextName [%thread] %-5level %logger- %msg%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss.SSS} %contextName [%thread] %-5level %logger- %msg%n"
   logback:
     rolling-policy:
       max-history: 7
