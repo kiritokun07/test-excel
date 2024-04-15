@@ -1,0 +1,70 @@
+spring:
+  application:
+    name: test-excel
+  servlet:
+    multipart:
+      enabled: true
+      # 文件单个限制
+      max-file-size: 100MB
+      # 请求最大限制
+      max-request-size: 200MB
+  datasource:
+    type: com.alibaba.druid.pool.DruidDataSource
+    druid:
+      # 数据库
+      url: jdbc:mysql://localhost:3306/test?useUnicode=true&characterEncoding=utf-8
+      username: root
+      password: root
+      driver-class-name: com.mysql.cj.jdbc.Driver
+      #      db-type: com.alibaba.druid.pool.DruidDataSource
+      # 连接池-初始化大小
+      initial-size: 10
+      # 连接池-最大连接数
+      max-active: 100
+      # 最大等待时间
+      max-wait: 60000
+      # 连接池-最小空闲数
+      min-idle: 10
+      # 检测空闲连接
+      test-while-idle: true
+      # 最小空闲时间
+      min-evictable-idle-time-millis: 300000
+
+mybatis-plus:
+  configuration:
+    # 二级缓存，不适用于频繁修改数据的业务
+    cache-enabled: true
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+
+logging:
+  level:
+    root: info
+  file:
+    path: ./
+    name: logs/${spring.application.name}.log
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} %contextName [%thread] %-5level %logger- %msg%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss} %contextName [%thread] %-5level %logger- %msg%n"
+  logback:
+    rolling-policy:
+      max-history: 7
+      max-file-size: 10MB
+      total-size-cap: 50MB
+
+# springdoc-openapi项目配置
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+    tags-sorter: alpha
+    operations-sorter: alpha
+  api-docs:
+    path: /v3/api-docs
+  group-configs:
+    - group: 'default'
+      paths-to-match: '/**'
+      packages-to-scan: com.kirito.excel.controller
+# knife4j的增强配置，不需要增强可以不配
+knife4j:
+  enable: true
+  setting:
+    language: zh_cn
