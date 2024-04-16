@@ -22,31 +22,54 @@ public class ExportUtil {
                 .doWrite(dataList);
     }
 
+    public static final int MAX_NUM_IN_ONE_SHEET = 100_0000;
+
     public static <T> void export2(String destPath, Class<T> clazz, Integer total, Integer size,
                                    Runnable startFunc,
-
                                    BiFunction<Integer, Integer, Collection<T>> exportFunc,
                                    BiConsumer<Integer, Integer> noticeFunc,
                                    Runnable endFunc) {
         startFunc.run();
         try (ExcelWriter excelWriter = EasyExcel.write(destPath, clazz).build()
         ) {
-            WriteSheet writeSheet = EasyExcel.writerSheet("Sheet1")
-                    .registerConverter(new MyLocalDateTimeConverter())
-                    // 设置字段宽度为自动调整，不太精确
-                    .registerWriteHandler(new LongestMatchColumnWidthStyleStrategy())
-                    .build();
             MyPager myPager = new MyPager(total, size);
-            while (myPager.hasNext()) {
-                Collection<T> nextCollection = myPager.nextCollection(exportFunc, noticeFunc);
-                if (!nextCollection.isEmpty()) {
-                    excelWriter.write(nextCollection, writeSheet);
+            int sheetCount = total / MAX_NUM_IN_ONE_SHEET + 1;
+            for (int sheetI = 1; sheetI <= sheetCount; ++sheetI) {
+                WriteSheet writeSheet = generateWriteSheet("Sheet" + sheetI);
+                int currentRows = 0;
+                while (myPager.hasNext()) {
+                    Collection<T> nextCollection = myPager.nextCollection(exportFunc, noticeFunc);
+                    if (!nextCollection.isEmpty()) {
+                        excelWriter.write(nextCollection, writeSheet);
+                    }
+                    currentRows += nextCollection.size();
+                    nextCollection.clear();
+                    if (currentRows >= MAX_NUM_IN_ONE_SHEET) {
+                        break;
+                    }
                 }
-                nextCollection.clear();
+
             }
+            //WriteSheet writeSheet = generateWriteSheet("Sheet1");
+            //MyPager myPager = new MyPager(total, size);
+            //while (myPager.hasNext()) {
+            //    Collection<T> nextCollection = myPager.nextCollection(exportFunc, noticeFunc);
+            //    if (!nextCollection.isEmpty()) {
+            //        excelWriter.write(nextCollection, writeSheet);
+            //    }
+            //    nextCollection.clear();
+            //}
         } finally {
             endFunc.run();
         }
+    }
+
+    private static WriteSheet generateWriteSheet(String sheetName) {
+        return EasyExcel.writerSheet(sheetName)
+                .registerConverter(new MyLocalDateTimeConverter())
+                // 设置字段宽度为自动调整，不太精确
+                .registerWriteHandler(new LongestMatchColumnWidthStyleStrategy())
+                .build();
     }
 
 }

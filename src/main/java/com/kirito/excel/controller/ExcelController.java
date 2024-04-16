@@ -63,7 +63,7 @@ public class ExcelController {
     public R<?> generateData() {
         List<BigData> saveList = new ArrayList<>();
         BigData saveModel;
-        for (int i = 10_0000; i < 30_0000; i++) {
+        for (int i = 20_0000; i <= 30_0000; i++) {
             saveModel = new BigData();
             saveModel.setName("A" + i);
             saveModel.setAge(i);
@@ -101,7 +101,7 @@ public class ExcelController {
     }
 
     private static String geneDestPath() {
-        return "C:\\Users\\kirito\\Desktop\\bigData-" + System.currentTimeMillis() / 1000 + ".xlsx";
+        return "C:\\Users\\Administrator\\Desktop\\bigData-" + System.currentTimeMillis() / 1000 + ".xlsx";
     }
 
     @Operation(summary = "export2")
@@ -112,15 +112,12 @@ public class ExcelController {
         log.info("导出开始");
         Instant start = Instant.now();
         Runnable startFunc = () -> System.out.println("开始导出");
-        BiFunction<Integer, Integer, Collection<BigDataDto>> exportFunc = new BiFunction<>() {
-            @Override
-            public Collection<BigDataDto> apply(Integer cursor, Integer size) {
-                log.info("page limit {},{}", cursor, size);
-                return bigDataConverter.bigData2DtoList(iBigDataService.lambdaQuery()
-                        .last(StrUtil.format("limit {},{}", cursor, size))
-                        .list()
-                );
-            }
+        BiFunction<Integer, Integer, Collection<BigDataDto>> exportFunc = (cursor, size) -> {
+            log.info("page limit {},{}", cursor, size);
+            return bigDataConverter.bigData2DtoList(iBigDataService.lambdaQuery()
+                    .last(StrUtil.format("limit {},{}", cursor, size))
+                    .list()
+            );
         };
         BiConsumer<Integer, Integer> noticeFunc = (cursor, myTotal) -> System.out.println("导出百分比= " + cursor * 1.0 / myTotal);
         Runnable endFunc = () -> System.out.println("结束导出");
