@@ -1,6 +1,7 @@
 package com.kirito.excel;
 
 import org.apache.http.HttpHost;
+import org.elasticsearch.action.admin.indices.delete.DeleteIndexRequest;
 import org.elasticsearch.client.RequestOptions;
 import org.elasticsearch.client.RestClient;
 import org.elasticsearch.client.RestHighLevelClient;
@@ -74,6 +75,14 @@ public class EsTest {
         request.source(MAPPING_TEMPLATE, XContentType.JSON);
         //3.发送请求
         client.indices().create(request, RequestOptions.DEFAULT);
+    }
+
+    @Test
+    public void testDeleteHotelIndex() throws IOException {
+        //1.创建Request对象
+        DeleteIndexRequest request = new DeleteIndexRequest("hotel");
+        //2.发送请求
+        client.indices().delete(request, RequestOptions.DEFAULT);
     }
 
 }
