@@ -14,7 +14,10 @@ import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 
-public class EsTest {
+/**
+ * es索引测试
+ */
+public class EsIndexTest {
 
     private RestHighLevelClient client;
 
