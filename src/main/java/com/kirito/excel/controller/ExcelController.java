@@ -26,10 +26,13 @@ import java.util.List;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 
+/**
+ * 1 excel
+ */
 @RestController
 @Slf4j
-@RequestMapping("/test")
-@Tag(name = "test")
+@RequestMapping("/excel")
+@Tag(name = "1 excel")
 @RequiredArgsConstructor
 public class ExcelController {
 
