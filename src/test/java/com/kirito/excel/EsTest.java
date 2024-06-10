@@ -6,6 +6,7 @@ import org.elasticsearch.client.RequestOptions;
 import org.elasticsearch.client.RestClient;
 import org.elasticsearch.client.RestHighLevelClient;
 import org.elasticsearch.client.indices.CreateIndexRequest;
+import org.elasticsearch.client.indices.GetIndexRequest;
 import org.elasticsearch.common.xcontent.XContentType;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -29,7 +30,7 @@ public class EsTest {
         this.client.close();
     }
 
-    public static final String MAPPING_TEMPLATE= """
+    public static final String MAPPING_TEMPLATE = """
             {
                 "mappings": {
                     "properties": {
@@ -67,6 +68,12 @@ public class EsTest {
             }
             """;
 
+    /**
+     * PUT /hotel
+     * {
+     * "xxx": "xxx"
+     * }
+     */
     @Test
     public void testCreateHotelIndex() throws IOException {
         //1.创建Request对象
@@ -77,12 +84,27 @@ public class EsTest {
         client.indices().create(request, RequestOptions.DEFAULT);
     }
 
+    /**
+     * DELETE /hotel
+     */
     @Test
     public void testDeleteHotelIndex() throws IOException {
         //1.创建Request对象
         DeleteIndexRequest request = new DeleteIndexRequest("hotel");
         //2.发送请求
         client.indices().delete(request, RequestOptions.DEFAULT);
+    }
+
+    /**
+     * GET hotel
+     */
+    @Test
+    public void testExistsHotelIndex() throws IOException {
+        //1.创建Request对象
+        GetIndexRequest request = new GetIndexRequest("hotel");
+        //2.发送请求
+        boolean exists = client.indices().exists(request, RequestOptions.DEFAULT);
+        System.out.println(exists ? "索引库已存在" : "索引库不存在");
     }
 
 }
