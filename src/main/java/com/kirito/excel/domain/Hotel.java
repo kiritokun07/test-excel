@@ -55,5 +55,6 @@ public class Hotel implements Serializable {
     private LocalDateTime updateTime;
 
 //    @ApiModelProperty("0:正常; -100:删除;")
-    private Byte dataStatus;
+    private Integer dataStatus;
+
 }
