@@ -46,6 +46,8 @@ public class Hotel implements Serializable {
     //纬度
     private String latitude;
 
+    //广告
+    private Boolean adFlag;
 //    @ApiModelProperty("创建时间")
 //    @TableField(fill = FieldFill.INSERT)
     private LocalDateTime createTime;

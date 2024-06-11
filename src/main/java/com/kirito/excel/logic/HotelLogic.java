@@ -19,6 +19,8 @@ import org.elasticsearch.common.geo.GeoPoint;
 import org.elasticsearch.common.unit.DistanceUnit;
 import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
+import org.elasticsearch.index.query.functionscore.FunctionScoreQueryBuilder;
+import org.elasticsearch.index.query.functionscore.ScoreFunctionBuilders;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.SearchHits;
 import org.elasticsearch.search.sort.SortBuilders;
@@ -90,6 +92,7 @@ public class HotelLogic {
             //filter不参与算分
             boolQuery.filter(QueryBuilders.termQuery("city", req.getCity().trim()));
         }
+
         //3.range条件
         if (Objects.nonNull(req.getMinPrice()) && Objects.nonNull(req.getMaxPrice())) {
             boolQuery.filter(
@@ -105,24 +108,24 @@ public class HotelLogic {
                             .unit(DistanceUnit.KILOMETERS)
             );
         }
-        request.source().query(boolQuery);
+        //request.source().query(boolQuery);
         //4.算分控制
-        //FunctionScoreQueryBuilder functionScoreQueryBuilder = QueryBuilders.functionScoreQuery(
-        //        //原始查询，相关性算分的查询
-        //        boolQuery,
-        //        //function score的数组
-        //        new FunctionScoreQueryBuilder.FilterFunctionBuilder[]{
-        //                //其中的一个function score元素
-        //                new FunctionScoreQueryBuilder.FilterFunctionBuilder(
-        //                        //过滤条件
-        //                        QueryBuilders.termQuery("isAD", true),
-        //                        //算分函数
-        //                        ScoreFunctionBuilders.weightFactorFunction(30)
-        //                )
-        //        }
-        //);
-        //
-        //request.source().query(functionScoreQueryBuilder);
+        FunctionScoreQueryBuilder functionScoreQueryBuilder = QueryBuilders.functionScoreQuery(
+                //原始查询，相关性算分的查询
+                boolQuery,
+                //function score的数组
+                new FunctionScoreQueryBuilder.FilterFunctionBuilder[]{
+                        //其中的一个function score元素
+                        new FunctionScoreQueryBuilder.FilterFunctionBuilder(
+                                //过滤条件
+                                QueryBuilders.termQuery("adFlag", true),
+                                //算分函数
+                                ScoreFunctionBuilders.weightFactorFunction(10)
+                        )
+                }
+        );
+
+        request.source().query(functionScoreQueryBuilder);
     }
 
 }

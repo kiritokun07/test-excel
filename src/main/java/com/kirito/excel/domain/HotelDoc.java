@@ -18,6 +18,8 @@ public class HotelDoc {
     private BigDecimal price;
     private Double score;
     private String location;
+    //广告标志
+    private Boolean adFlag;
     //排序时的 距离值
     private Object distance;
 

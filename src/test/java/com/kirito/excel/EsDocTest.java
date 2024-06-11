@@ -125,6 +125,39 @@ public class EsDocTest {
         UpdateResponse response = client.update(request, RequestOptions.DEFAULT);
     }
 
+    /**
+     * GET /hotel/_search
+     * {
+     *     "query": {
+     *         "function_score": {
+     *             "query":{
+     *                 "match":{
+     *                     "all": "外滩"
+     *                 }
+     *             },
+     *             "function": [
+     *             {
+     *                 "filter": {
+     *                     "term": {"id": "1"}
+     *                 },
+     *                 "weight": 10
+     *             }
+     *             ],
+     *             "boost_mode": "multiply"
+     *         }
+     *     }
+     * }
+     */
+    @Test
+    public void testUpdateDocumentById2() throws IOException {
+        //1.准备Request
+        UpdateRequest request = new UpdateRequest("hotel", "1");
+        //2.准备请求参数
+        request.doc("adFlag", true);
+        //3.发送请求，得到响应
+        UpdateResponse response = client.update(request, RequestOptions.DEFAULT);
+    }
+
     @Test
     public void testBulkRequest() throws IOException {
         List<Hotel> hotelList = iHotelService.list();
