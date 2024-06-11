@@ -15,12 +15,14 @@ import org.elasticsearch.action.search.SearchRequest;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.client.RequestOptions;
 import org.elasticsearch.client.RestHighLevelClient;
+import org.elasticsearch.common.geo.GeoPoint;
+import org.elasticsearch.common.unit.DistanceUnit;
 import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
-import org.elasticsearch.index.query.functionscore.FunctionScoreQueryBuilder;
-import org.elasticsearch.index.query.functionscore.ScoreFunctionBuilders;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.SearchHits;
+import org.elasticsearch.search.sort.SortBuilders;
+import org.elasticsearch.search.sort.SortOrder;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -51,6 +53,7 @@ public class HotelLogic {
     }
 
     private PageVO<HotelDoc> handleHotelResponse(SearchResponse response) {
+        System.out.println("response = " + JacksonUtil.toJSONString(response));
         SearchHits searchHits = response.getHits();
         if (Objects.isNull(searchHits.getTotalHits())) {
             System.out.println("没有查到数据");
@@ -64,6 +67,9 @@ public class HotelLogic {
             String json = searchHit.getSourceAsString();
             HotelDoc hotelDoc = JacksonUtil.parse(json, new TypeReference<HotelDoc>() {
             });
+            if (searchHit.getSortValues().length > 0) {
+                hotelDoc.setDistance(searchHit.getSortValues()[0]);
+            }
             hotelDocList.add(hotelDoc);
             System.out.println(hotelDoc);
         }
@@ -74,12 +80,14 @@ public class HotelLogic {
         //1.构造bool查询
         BoolQueryBuilder boolQuery = QueryBuilders.boolQuery();
         if (StrUtil.isEmpty(req.getKey())) {
-            request.source().query(QueryBuilders.matchAllQuery());
+            //must参与算分
+            boolQuery.must(QueryBuilders.matchAllQuery());
         } else {
-            request.source().query(QueryBuilders.matchQuery("all", req.getKey().trim()));
+            boolQuery.must(QueryBuilders.matchQuery("all", req.getKey().trim()));
         }
         //2.term条件
         if (StrUtil.isNotEmpty(req.getCity())) {
+            //filter不参与算分
             boolQuery.filter(QueryBuilders.termQuery("city", req.getCity().trim()));
         }
         //3.range条件
@@ -90,23 +98,31 @@ public class HotelLogic {
                             .lte(req.getMaxPrice())
             );
         }
+        if (StrUtil.isNotEmpty(req.getLocation())) {
+            request.source().sort(
+                    SortBuilders.geoDistanceSort("location", new GeoPoint(req.getLocation()))
+                            .order(SortOrder.ASC)
+                            .unit(DistanceUnit.KILOMETERS)
+            );
+        }
+        request.source().query(boolQuery);
         //4.算分控制
-        FunctionScoreQueryBuilder functionScoreQueryBuilder = QueryBuilders.functionScoreQuery(
-                //原始查询，相关性算分的查询
-                boolQuery,
-                //function score的数组
-                new FunctionScoreQueryBuilder.FilterFunctionBuilder[]{
-                        //其中的一个function score元素
-                        new FunctionScoreQueryBuilder.FilterFunctionBuilder(
-                                //过滤条件
-                                QueryBuilders.termQuery("isAD", true),
-                                //算分函数
-                                ScoreFunctionBuilders.weightFactorFunction(30)
-                        )
-                }
-        );
-
-        request.source().query(functionScoreQueryBuilder);
+        //FunctionScoreQueryBuilder functionScoreQueryBuilder = QueryBuilders.functionScoreQuery(
+        //        //原始查询，相关性算分的查询
+        //        boolQuery,
+        //        //function score的数组
+        //        new FunctionScoreQueryBuilder.FilterFunctionBuilder[]{
+        //                //其中的一个function score元素
+        //                new FunctionScoreQueryBuilder.FilterFunctionBuilder(
+        //                        //过滤条件
+        //                        QueryBuilders.termQuery("isAD", true),
+        //                        //算分函数
+        //                        ScoreFunctionBuilders.weightFactorFunction(30)
+        //                )
+        //        }
+        //);
+        //
+        //request.source().query(functionScoreQueryBuilder);
     }
 
 }

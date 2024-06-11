@@ -193,4 +193,27 @@ public class EsSearchTest {
         //4.解析结果
         handleHotelResponse(response);
     }
+
+    /**
+     * GET /hotel/_search
+     * {
+     *     "query": {
+     *         "match_all": {}
+     *     },
+     *     "sort": [
+     *     {
+     *         "price": "asc"
+     *     },
+     *     {
+     *         "_geo_distance": {
+     *             "FIELD": "维度, 经度",
+     *             "order": "asc",
+     *             "unit": "km"
+     *         }
+     *     }
+     *     ]
+     * }
+     * 安徽省宣城市宣州区敬亭山
+     * "location": "118.733062,30.980923"
+     */
 }
