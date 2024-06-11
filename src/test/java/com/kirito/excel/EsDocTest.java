@@ -6,9 +6,13 @@ import com.kirito.excel.domain.HotelDoc;
 import com.kirito.excel.service.IHotelService;
 import com.kirito.excel.utils.JacksonUtil;
 import org.apache.http.HttpHost;
+import org.elasticsearch.action.delete.DeleteRequest;
+import org.elasticsearch.action.delete.DeleteResponse;
 import org.elasticsearch.action.get.GetRequest;
 import org.elasticsearch.action.get.GetResponse;
 import org.elasticsearch.action.index.IndexRequest;
+import org.elasticsearch.action.update.UpdateRequest;
+import org.elasticsearch.action.update.UpdateResponse;
 import org.elasticsearch.client.RequestOptions;
 import org.elasticsearch.client.RestClient;
 import org.elasticsearch.client.RestHighLevelClient;
@@ -47,7 +51,7 @@ public class EsDocTest {
     /**
      * POST /hotel/_doc/1
      * {
-     *     "xxx": "xxx"
+     * "xxx": "xxx"
      * }
      */
     @Test
@@ -86,4 +90,37 @@ public class EsDocTest {
     /**
      * DELETE /hotel/_doc/{id}
      */
+    @Test
+    public void testDeleteDocumentById() throws IOException {
+        //1.准备Request
+        DeleteRequest request = new DeleteRequest("hotel", "1");
+        //2.发送请求，得到响应
+        DeleteResponse response = client.delete(request, RequestOptions.DEFAULT);
+    }
+
+    /**
+     * POST /hotel/_update/1
+     * {
+     *     "doc":{
+     *         "xxx": "xxx"
+     *     }
+     * }
+     * 全量修改：本质是先根据id删除再新增
+     * 增量修改：修改文档中的指定字段值
+     * 在RestClient的API中，全量修改与新增的API完全一致，判断依据是ID：
+     * 如果新增时ID已存在，则修改
+     * 如果新增时ID不存在，则新增
+     */
+    @Test
+    public void testUpdateDocumentById() throws IOException {
+        //1.准备Request
+        UpdateRequest request = new UpdateRequest("hotel", "1");
+        //2.准备请求参数
+        request.doc("price", "888",
+                "city", "宣州区"
+        );
+        //3.发送请求，得到响应
+        UpdateResponse response = client.update(request, RequestOptions.DEFAULT);
+    }
+
 }
