@@ -26,7 +26,8 @@ public class HotelDoc {
         this.address = hotel.getAddress();
         this.price = hotel.getPrice();
         this.score = hotel.getScore();
-        this.location = hotel.getLongitude() + ", " + hotel.getLatitude();
+        //注意纬度在前经度在后
+        this.location = hotel.getLatitude() + ", " + hotel.getLongitude();
     }
 
 }
