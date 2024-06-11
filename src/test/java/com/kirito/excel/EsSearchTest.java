@@ -12,6 +12,7 @@ import org.elasticsearch.client.RestHighLevelClient;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.SearchHits;
+import org.elasticsearch.search.fetch.subphase.highlight.HighlightBuilder;
 import org.elasticsearch.search.sort.SortOrder;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -175,5 +176,21 @@ public class EsSearchTest {
         handleHotelResponse(response);
     }
 
-
+    @Test
+    public void testHighlight() throws IOException {
+        //1.准备Request
+        SearchRequest request = new SearchRequest("hotel");
+        //2.组装DSL参数
+        request.source().query(QueryBuilders.matchQuery("all", "希尔顿"));
+        //高亮
+        request.source().highlighter(
+                new HighlightBuilder()
+                        .field("name").requireFieldMatch(false)
+        );
+        //3.发送请求
+        SearchResponse response = client.search(request, RequestOptions.DEFAULT);
+        System.out.println("response = " + JacksonUtil.toJSONString(response));
+        //4.解析结果
+        handleHotelResponse(response);
+    }
 }
