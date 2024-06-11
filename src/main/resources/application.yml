@@ -51,6 +51,9 @@ logging:
       max-file-size: 10MB
       total-size-cap: 50MB
 
+es:
+  host: http://localhost:9200
+
 # springdoc-openapi项目配置
 springdoc:
   swagger-ui:
