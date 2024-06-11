@@ -6,6 +6,7 @@ import com.kirito.excel.domain.HotelDoc;
 import com.kirito.excel.service.IHotelService;
 import com.kirito.excel.utils.JacksonUtil;
 import org.apache.http.HttpHost;
+import org.elasticsearch.action.bulk.BulkRequest;
 import org.elasticsearch.action.delete.DeleteRequest;
 import org.elasticsearch.action.delete.DeleteResponse;
 import org.elasticsearch.action.get.GetRequest;
@@ -24,6 +25,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
 import java.io.IOException;
+import java.util.List;
 
 /**
  * es文档测试
@@ -57,7 +59,7 @@ public class EsDocTest {
     @Test
     public void testAddDocument() throws IOException {
         //1.根据id查询酒店数据
-        Hotel hotel = iHotelService.getById(1L);
+        Hotel hotel = iHotelService.getById(2L);
         //2.转换为文档类型
         HotelDoc hotelDoc = new HotelDoc(hotel);
         //3.将HotelDoc转为json
@@ -77,7 +79,7 @@ public class EsDocTest {
     @Test
     public void testGetDocumentById() throws IOException {
         //1.准备Request
-        GetRequest request = new GetRequest("hotel", "1");
+        GetRequest request = new GetRequest("hotel", "2");
         //2.发送请求，得到响应
         GetResponse response = client.get(request, RequestOptions.DEFAULT);
         //3.解析响应结果
@@ -101,9 +103,9 @@ public class EsDocTest {
     /**
      * POST /hotel/_update/1
      * {
-     *     "doc":{
-     *         "xxx": "xxx"
-     *     }
+     * "doc":{
+     * "xxx": "xxx"
+     * }
      * }
      * 全量修改：本质是先根据id删除再新增
      * 增量修改：修改文档中的指定字段值
@@ -121,6 +123,26 @@ public class EsDocTest {
         );
         //3.发送请求，得到响应
         UpdateResponse response = client.update(request, RequestOptions.DEFAULT);
+    }
+
+    @Test
+    public void testBulkRequest() throws IOException {
+        List<Hotel> hotelList = iHotelService.list();
+
+        //1.准备Request
+        BulkRequest request = new BulkRequest();
+        //2.准备参数，添加多个新增的Request
+        for (Hotel hotel : hotelList) {
+            //2.1转换为文档类型
+            HotelDoc hotelDoc = new HotelDoc(hotel);
+            //2.2创建新增文档的Request对象
+            request.add(new IndexRequest("hotel")
+                    .id(hotelDoc.getId().toString())
+                    .source(JacksonUtil.toJSONString(hotelDoc), XContentType.JSON)
+            );
+        }
+        //3.发送请求
+        client.bulk(request, RequestOptions.DEFAULT);
     }
 
 }
